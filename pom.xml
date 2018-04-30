@@ -1,0 +1,201 @@
+<project>
+    <groupId>com</groupId>
+    <artifactId>lenta</artifactId>
+    <packaging>war</packaging>
+    <modelVersion>4.0.0</modelVersion>
+    <version>0.1</version>
+    <name>Lenta</name>
+
+    <properties>
+        <tomcat.version>8.5.29</tomcat.version>
+        <mysql.version>8.0.8-dmr</mysql.version>
+        <jstl.version>1.2</jstl.version>
+        <junit.version>4.12</junit.version>
+
+        <testdb.driver>com.mysql.cj.jdbc.Driver</testdb.driver>
+        <testdb.url>jdbc:mysql://192.168.254.2:3306/?useSSL=false</testdb.url>
+        <testdb.name>lenta_test</testdb.name>
+        <testdb.user>webadmin</testdb.user>
+        <testdb.password>762cd55e</testdb.password>
+    </properties>
+
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-servlet-api -->
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-servlet-api</artifactId>
+            <version>${tomcat.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-jdbc -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+            <version>2.0.1.RELEASE</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/javax.servlet/jstl -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>${jstl.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/junit/junit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <webXml>src/main/webapp/WEB-INF/web.xml</webXml>        
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+
+                <!--<groupId>org.codehaus.mojo</groupId>-->
+                <!--<artifactId>sql-maven-plugin</artifactId>-->
+                <!--<version>3.0.0-SNAPSHOT</version>-->
+
+                <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/sql-maven-plugin -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>sql-maven-plugin</artifactId>
+                <version>1.5</version>
+
+                <dependencies>
+                    <!-- specify the dependent jdbc driver here -->
+                    <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+                    <dependency>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>${mysql.version}</version>
+                    </dependency>
+                </dependencies>
+
+                <!-- common configuration shared by all executions -->
+                <configuration>
+                    <driver>${testdb.driver}</driver>
+                    <url>${testdb.url}</url>
+                    <username>${testdb.user}</username>
+                    <password>${testdb.password}</password>
+                    <encoding>UTF-8</encoding>
+                    <!-- You can comment out username/password configurations and
+                         have maven to look them up in your settings.xml using ${settingsKey}
+                    -->
+                    <settingsKey>sensibleKey</settingsKey>
+                    <!--all executions are ignored if -Dmaven.test.skip=true-->
+                    <!--<skip>${maven.test.skip}</skip>-->
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>drop-db-before-test</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <!-- need another database to drop the targeted one -->
+                            <url>${testdb.url}</url>
+                            <autocommit>true</autocommit>
+                            <sqlCommand>DROP DATABASE IF EXISTS `lenta_test`</sqlCommand>
+                            <!-- ignore error when database is not avaiable -->
+                            <onError>continue</onError>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>create-db</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <url>${testdb.url}</url>
+                            <!-- no transaction -->
+                            <autocommit>true</autocommit>
+                            <sqlCommand>CREATE DATABASE `lenta_test`</sqlCommand>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>create-schema</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <sqlCommand>USE ${testdb.name}</sqlCommand>
+                            <autocommit>true</autocommit>
+                            <srcFiles>
+                                <srcFile>src/main/sql/schema.sql</srcFile>
+                                <srcFile>src/main/sql/data.sql</srcFile>
+                            </srcFiles>
+                        </configuration>
+                    </execution>
+
+                    <!--<execution>-->
+                        <!--<id>create-data</id>-->
+                        <!--<phase>process-test-resources</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>execute</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<orderFile>ascending</orderFile>-->
+                            <!--<fileset>-->
+                                <!--<basedir>${basedir}</basedir>-->
+                                <!--<includes>-->
+                                    <!--<include>src/test/sql/test-data2.sql</include>-->
+                                    <!--<include>src/test/sql/test-data1.sql</include>-->
+                                <!--</includes>-->
+                            <!--</fileset>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+
+                    <!--&lt;!&ndash; drop db after test &ndash;&gt;-->
+                    <!--<execution>-->
+                        <!--<id>drop-db-after-test</id>-->
+                        <!--<phase>test</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>execute</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<autocommit>true</autocommit>-->
+                            <!--<sqlCommand>drop database yourdb</sqlCommand>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                    <!---->
+                </executions>
+            </plugin>
+
+
+        </plugins>
+    </build>
+</project>

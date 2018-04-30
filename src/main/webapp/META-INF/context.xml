@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/lenta">
+    <Resource 
+        driverClassName="com.mysql.jdbc.Driver" 
+        maxActive="4" 
+        maxIdle="2" 
+        maxWait="5000" 
+        name="jdbc/lentaDB" 
+        username="webadmin" 
+        password="762cd55e" 
+        type="javax.sql.DataSource" 
+        url="jdbc:mysql://127.0.0.1:3306/lenta?useSSL=false" 
+        validationQuery="SELECT 1">
+    </Resource>
+</Context>

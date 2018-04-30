@@ -1,0 +1,13 @@
+.block_container {
+	border: 1px solid black;
+	margin: 10 0 0 30px;
+	padding: 5px;
+	width: 800px;
+}
+.block1 {
+	padding: 0 40 0 10px;
+	display:inline;
+}
+.block2 {
+	display:inline;
+}
